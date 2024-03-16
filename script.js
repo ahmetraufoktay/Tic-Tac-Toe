@@ -13,16 +13,14 @@ function Gameboard() {
     const changeMark = (row,column,player) => {
         if (board[row][column].getValue() === 0) {
             board[row][column].addMark(player);
-            console.log('positive');
         }
     };
 
-    const printBoard = () => {
+    const returnBoard = () => {
         const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()))
-        console.log(boardWithCellValues);
         return boardWithCellValues;
     };
-    return { changeMark, printBoard }
+    return { changeMark, returnBoard }
 }
 
 function Cell() {
@@ -60,7 +58,7 @@ function GameController(playerOneName = "Player One", playerTwoName = "Player Tw
     const getActivePlayer = () => activePlayer;
 
     const printNewRound = () => {
-        board.printBoard();
+        console.log(board.returnBoard());
         console.log(`${getActivePlayer().name}'s turn.`);
     };
 
@@ -70,15 +68,19 @@ function GameController(playerOneName = "Player One", playerTwoName = "Player Tw
           );
         board.changeMark(row,column,getActivePlayer().token);
         
-        const boardWithCellValues = board.printBoard();
+        const boardWithCellValues = board.returnBoard();
 
-        if (checkForWin(boardWithCellValues, players[0])) {
-            console.log('Player One (X) WON');
-        } else if(checkForWin(boardWithCellValues, players[1])) {
-            console.log('Player Two(O) WON')
+        if (checkForWin(boardWithCellValues, activePlayer)) {
+            console.log(`${activePlayer.name}(${activePlayer.token}) WON`);
+            turnSign.innerHTML = `${activePlayer.name} (${activePlayer.token}) WON`
+            container.removeEventListener('click', handleCellClick);
         } else if (!checkForEmptySpaces(boardWithCellValues)) {
             console.log("It's a draw! No more empty spaces.");
+            turnSign.innerHTML = "It's a draw! No more empty spaces.";
+            container.removeEventListener('click', handleCellClick);
         }
+
+        printNewRound();
         switchPlayerTurn();
     };
 
@@ -114,4 +116,23 @@ function GameController(playerOneName = "Player One", playerTwoName = "Player Tw
 }
 
 const game = GameController();
+
+const container = document.querySelector(".container");
+const turnSign = document.querySelector('.turn');
+
+const handleCellClick = (event) => {
+    const cell = event.target;
+    const row = cell.getAttribute('row');
+    const column = cell.getAttribute('column');
+
+    if (cell.innerHTML !== '') {
+        return;
+    }
+    
+    cell.innerHTML = game.getActivePlayer().token;
+    turnSign.innerHTML = `${game.getActivePlayer().name} (${game.getActivePlayer().token})'s turn`;
+    game.playRound(row, column);
+};
+
+container.addEventListener('click', handleCellClick);
 
